@@ -1,0 +1,46 @@
+<mujoco model="aero_hand_laparoscope_scene">
+    <!-- Aero Hand with a 6-DoF wrist (make_mobile_hand.py) + pistol-grip laparoscopic grasper (make_grasper.py) -->
+    <include file="right_hand_mobile.xml"/>
+    <include file="grasper.xml"/>
+
+    <statistic center="0.15 0 0" extent="0.5" meansize="0.01"/>
+
+    <visual>
+        <headlight diffuse=".8 .8 .8" ambient=".2 .2 .2" specular="1 1 1"/>
+        <global azimuth="150" elevation="-25" offwidth="1280" offheight="960"/>
+        <quality shadowsize="8192"/>
+    </visual>
+
+    <asset>
+        <texture type="skybox" builtin="gradient" rgb1="0.60 0.90 0.97" rgb2="0 0 0" width="800" height="800"/>
+        <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.1 0.3 0.2" rgb2="0.2 0.4 0.3" markrgb="0.8 0.8 0.8" width="300" height="300"/>
+        <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0"/>
+    </asset>
+
+    <worldbody>
+        <camera name="side" pos="0.45 0.45 0.3" xyaxes="-0.71 0.71 0 -0.3 -0.3 0.9"/>
+        <geom name="floor" pos="0 0 -0.25" size="0 0 0.01" type="plane" material="groundplane" contype="2" conaffinity="2"/>
+    </worldbody>
+
+    <equality>
+        <!-- Soft "hold the tool in the palm" constraint used by teleop_mediapipe.py until the user
+             closes their hand (inactive by default). relpose = tool pose in the palm frame at the
+             pregrasp keyframe. Unlike overwriting qpos, a weld lets the fingers push on the tool
+             instead of sinking into it, so releasing does not eject it. -->
+        <weld name="tool_in_palm" body1="palm" body2="laparoscope" active="false"
+              relpose="0.06940 -0.06261 0.09896 -0.12276 0.69637 -0.12276 0.69637"/>
+    </equality>
+
+    <keyframe>
+        <!-- qpos: 6 wrist (x y z yaw pitch roll), 16 finger joints, 7 instrument freejoint.
+             ctrl: 7 finger actuators, 6 wrist actuators.
+             Fingers pre-curled ~40% (open fingers slope down and the instrument would slide off),
+             thumb rotated out of the way, instrument grip loop lying just above the palm. -->
+        <key name="pregrasp"
+             qpos="0 0 0 0 0 0
+                   1.3082 -0.0017 -0.0006  1.3436 -0.0017 -0.0006  1.3079 -0.0017 -0.0006  1.4594 -0.0017 -0.0006
+                   0.1943 0.0380 -0.0039 -0.0031
+                   0.1544 -0.0594 -0.0200 0.70710678 0.70710678 0 0"
+             ctrl="0.0896402 0.0896402 0.0896402 0.0896402 0.2 0.038389 0.112138  0 0 0 0 0 0"/>
+    </keyframe>
+</mujoco>
